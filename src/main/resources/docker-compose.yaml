@@ -1,0 +1,55 @@
+version: "3.9"
+
+networks:
+  rinha-network:
+    driver: bridge
+
+
+services:
+  rinha-postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: rinha
+      POSTGRES_USER: rinha
+      POSTGRES_PASSWORD: rinha
+    ports:
+      - "5432:5432"
+    networks:
+    - rinha-network
+
+
+  api1:
+    image: thiagotnunes08/rinha-api:2.2
+    hostname: api1
+    environment:
+      DB_HOST: rinha-postgres
+    ports:
+      - "8080"
+    networks:
+      - rinha-network
+    depends_on:
+      - rinha-postgres
+
+  api2:
+    image: thiagotnunes08/rinha-api:2.2
+    hostname: api2
+    environment:
+      DB_HOST: rinha-postgres
+    ports:
+      - "8080"
+    networks:
+      - rinha-network
+    depends_on:
+      - rinha-postgres
+
+  nginx:
+    image: nginx:1.17.6-alpine
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/nginx.conf
+    ports:
+      - "9999:9999"
+    networks:
+      - rinha-network
+    depends_on:
+      - api1
+      - api2
